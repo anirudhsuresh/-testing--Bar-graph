@@ -1,0 +1,315 @@
+<!doctype html>
+<html>
+   <head>
+  	<title>Bar Graph</title>
+  	<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.js"></script>
+
+<link href='https://fonts.googleapis.com/css?family=Bitter' rel='stylesheet' type='text/css'>
+<style type="text/css">
+body{
+  font-family: 'Bitter', serif;
+  background-color: #f6f6f6;
+}
+text{
+  font-family: 'Bitter', serif;
+}
+
+#showSale{
+  position: fixed;
+  margin-top: 150px;
+  width: 100%;
+  text-align: center;
+}
+
+#startWorkButton{
+  padding: 1em;
+  border: solid 0.2em #1E90FF;
+  border-radius: 10%;
+  width: 8em;
+  margin: 0em auto 0em auto;
+}
+#startWorkButton:hover{
+  border-color: #9ACD32;
+  cursor: pointer;
+}
+</style>
+
+   </head>
+<body>
+  <div id="showSale">
+  <div onclick="startWorkGraph()" id="startWorkButton">
+    Show 7 day sale
+  </div>
+  </div>
+	<script type="text/javascript">
+	
+var DB = [
+{day:1,
+  employees:[{
+  name: "William",
+  sales: 99653
+},{
+  name: "Gloria",
+  sales: 3000
+}, {
+  name: "Jimmy",
+  sales: 5000
+}, {
+  name: "Douglas",
+  sales: 79000
+},{
+  name:"Tyrone",
+  sales:0
+}]},
+{day:2,
+  employees:[{
+  name: "William",
+  sales: 8673
+}, {
+  name: "Gloria",
+  sales: 33088
+}, {
+  name: "Jimmy",
+  sales: 79687
+}, {
+  name: "Douglas",
+  sales: 65343
+},{
+  name:"Tyrone",
+  sales:10000
+}]}, 
+{day:3,
+  employees:[{
+  name: "William",
+  sales: 1867
+}, {
+  name: "Gloria",
+  sales: 13088
+}, {
+  name: "Jimmy",
+  sales: 68687
+},{
+  name: "Douglas",
+  sales: 45343
+},{
+  name:"Tyrone",
+  sales:1
+}]},
+{day:4,
+  employees:[{
+  name: "William",
+  sales: 8000
+}, {
+  name: "Gloria",
+  sales: 5000
+}, {
+  name: "Jimmy",
+  sales: 27000
+}, {
+  name: "Douglas",
+  sales: 99000
+},{
+  name:"Tyrone",
+  sales:100000
+}]},
+{day:5,
+  employees:[{
+  name: "William",
+  sales: 800
+}, {
+  name: "Gloria",
+  sales: 500
+}, {
+  name: "Jimmy",
+  sales: 7000
+}, {
+  name: "Douglas",
+  sales: 9000
+},{
+  name:"Tyrone",
+  sales: 570
+}]},
+{ day:6,
+  employees:[{
+  name: "William",
+  sales: 4000
+}, {
+  name: "Gloria",
+  sales: 50000
+}, {
+  name: "Jimmy",
+  sales: 70000
+}, {
+  name: "Douglas",
+  sales: 90000
+},{
+  name:"Tyrone",
+  sales: 5700
+}]},
+{day:7,
+  employees:[{
+  name: "William",
+  sales: 20000
+}, {
+  name: "Gloria",
+  sales: 2500
+}, {
+  name: "Jimmy",
+  sales: 79009
+}, {
+  name: "Douglas",
+  sales: 97000
+},{
+  name:"Tyrone",
+  sales: 55000
+}]}];
+
+function BarGraph(width,height){
+  var self = this;
+  this.outerWidth  = window.innerWidth;
+  this.outerHeight = 400;
+  var  margin      = {left:100,top:60,right:30,bottom:70};
+  var header       = 100; 
+  this.barPadding  = 0.3;
+  this.YPadding    = 10; 
+  this.XPadding    = 20;
+  this.XYFontSize  = "1em";
+  this.HeaderFontSize = "1.8em"; 
+  // Normally set through settings
+  this.xColumn     = "name";
+  this.yColumn     = "sales";
+  this.xText       = "Employees"; 
+  this.yText       = "Sales (Yen)";
+  this.headerText  = "Day"
+
+  this.innerWidth  = self.outerWidth - margin.left - margin.right;
+  this.innerHeight = self.outerHeight - margin.top - margin.bottom;
+  
+  this.svg = d3.select("body").append("svg")
+          .attr("width",self.outerWidth)
+          .attr("height",self.outerHeight);
+
+  this.g = self.svg.append("g")
+          .attr("transform","translate("+ margin.left + "," + margin.top + ")");
+
+  this.xAxisG = self.g.append("g")
+          .attr("transform","translate(0,"+ self.innerHeight+")");
+
+  this.yAxisG  = self.g.append("g");
+
+  this.xScale = d3.scale.ordinal().rangeBands([0,self.innerWidth],self.barPadding);
+
+  this.yScale = d3.scale.linear().range([self.innerHeight,0]);
+  this.xAxis = d3.svg.axis().scale(self.xScale).orient("bottom");
+  this.yAxis = d3.svg.axis().scale(self.yScale).orient("left").ticks(5);
+
+  this.color = d3.scale.linear()
+            .domain([0,100000])
+            .range(["#FF0000","#9ACD32"]);
+  this.svg
+        .append("text")
+        .attr("fill","#1E90FF")
+        .text(self.xText)
+        .attr("y",self.outerHeight - self.XPadding)
+        .attr("x",self.innerWidth / 2)
+        .attr("font-size",self.XYFontSize);
+
+  this.svg
+        .append("text")
+        .attr("fill","#1E90FF")
+        .attr("transform","rotate(-90)")
+        .attr("dy","0.5em")
+        .attr("y",self.YPadding)
+        .attr("x",function(){
+          var middleY = self.innerHeight / 2; 
+          return -middleY;
+         })
+        .style("text-anchor","middle")
+        .text(self.yText)
+        .attr("font-size",self.XYFontSize);
+
+  this.header = this.svg.append("text");
+}; 
+
+BarGraph.prototype.addData = function(data){
+    this.data = data.employees;
+    this.day  = data.day; 
+    this.refresh()
+};
+
+BarGraph.prototype.refresh = function(){
+  var self = this;
+  var data = self.data;
+  this.xScale.domain( data.map(function(d){ return d[self.xColumn];}));
+
+  this.yScale.domain([0,100000]);//or get the max from d[yColumn]
+  this.xAxisG.call(self.xAxis);
+  this.yAxisG.call(self.yAxis);
+
+  this.xAxisG
+      .attr("fill","gray")
+      .selectAll("text")
+      .attr("font-size","0.8em")
+      .attr("y",self.YPadding)
+      .attr("fill","#1E90FF");
+
+  this.yAxisG
+      .attr("fill","gray")
+      .selectAll("text")
+      .attr("font-size","0.8em")
+      .attr("y",self.YPadding)
+      .attr("fill","#1E90FF");
+
+  this.bars = self.g.selectAll("rect").data(data);
+  
+  this.bars.enter().append("rect")
+          .attr("width", self.xScale.rangeBand());
+
+  this.bars
+      .attr("fill",function(d){return self.color(d.sales);})
+      .transition()
+      .duration(1000)
+      .attr("x",function(d){return self.xScale(d[self.xColumn]);})
+      .attr("y",function(d){return self.yScale(d[self.yColumn]);})
+      .attr("height",function(d){return self.innerHeight - self.yScale(d[self.yColumn])});
+
+    this.header
+        .attr("fill","#1E90FF")
+        .attr("font-weight","bold")
+        .transition()
+        .text(self.headerText +" "+ self.day)
+        .attr("y",25)
+        .attr("x",self.innerWidth / 2)
+        .style("text-anchor","right")
+        .style("font-weight","normal")
+        .attr("font-size",self.HeaderFontSize);
+
+  this.bars.exit().remove();
+}
+
+BarGraph.prototype.startGraph = function(){
+ var self = this;
+ var timerNumber = 1500,i = 0, DBLength = DB.length;
+ function add() {
+    if( i < DBLength ){
+        setTimeout(add,timerNumber);
+        self.addData(DB[i])
+        i++;
+    }
+    if(i === DBLength){
+      console.log("Display highest sales, Lowest sales, medium sales");
+    }
+  }
+  add();
+}
+
+var startWorkGraph = function(){
+  var bargraph = new BarGraph();
+  var startWorkButton = document.getElementById("startWorkButton");
+  startWorkButton.style.display = "none";
+  bargraph.startGraph();
+}
+
+</script>
+</body>
+</html>
